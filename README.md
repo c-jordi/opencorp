@@ -1,2 +1,2 @@
 # opencorp
-Vibe coded tools for orchestrate a software company.
+Vibe coded tools to orchestrate a software company.
