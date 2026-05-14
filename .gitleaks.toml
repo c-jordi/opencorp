@@ -1,0 +1,38 @@
+# Gitleaks configuration.
+#
+# Inherits the built-in secret detection rules and adds rules that flag
+# local filesystem paths which can leak developer usernames.
+#
+# Bypass a single line by adding the comment: gitleaks:allow
+# Bypass an entire PR by adding the label: skip-secret-scan
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "local-path-macos"
+description = "Local macOS home directory path"
+regex = '''/Users/[A-Za-z][A-Za-z0-9._-]+/'''
+tags = ["local-path"]
+# Don't double-fire on Windows paths like `C:/Users/<name>/`.
+[[rules.allowlists]]
+regexTarget = "line"
+regexes = ['''[A-Za-z]:[\\/]+Users[\\/]+''']
+
+[[rules]]
+id = "local-path-linux"
+description = "Local Linux home directory path"
+regex = '''/home/[A-Za-z][A-Za-z0-9._-]+/'''
+tags = ["local-path"]
+# Common CI/devcontainer usernames are not PII.
+[[rules.allowlists]]
+regexTarget = "match"
+regexes = [
+  '''/home/(runner|user|ubuntu|vscode|codespace|ec2-user|circleci|node)/''',
+]
+
+[[rules]]
+id = "local-path-windows"
+description = "Local Windows user profile path"
+regex = '''(?i)[A-Z]:[\\/]+Users[\\/]+[A-Za-z][A-Za-z0-9._-]+[\\/]+'''
+tags = ["local-path"]
