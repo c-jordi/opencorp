@@ -1,0 +1,53 @@
+name: scan-guard
+
+# Asserts that the secret-scan workflow exists and has not been gutted.
+# Mark this job as a required status check on `main` alongside `gitleaks`
+# so that a PR which removes or weakens the scanner cannot merge.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  scan-guard:
+    name: scan-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert secret-scan workflow is intact
+        run: |
+          set -euo pipefail
+          file=".github/workflows/secret-scan.yml"
+
+          if [ ! -f "$file" ]; then
+            echo "::error::$file is missing. The secret scanner must be present."
+            exit 1
+          fi
+
+          # Required invariants. Update this list if you intentionally
+          # refactor secret-scan.yml.
+          required_patterns=(
+            'name: Secret and local-path scan'
+            'pull_request:'
+            'branches: \[main\]'
+            'gitleaks detect'
+          )
+
+          missing=0
+          for pattern in "${required_patterns[@]}"; do
+            if ! grep -Eq "$pattern" "$file"; then
+              echo "::error file=$file::missing required pattern: $pattern"
+              missing=1
+            fi
+          done
+
+          if [ ! -f .gitleaks.toml ]; then
+            echo "::error::.gitleaks.toml is missing."
+            missing=1
+          fi
+
+          exit "$missing"
