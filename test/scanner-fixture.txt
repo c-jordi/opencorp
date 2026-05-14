@@ -1,0 +1,7 @@
+Fixture for verifying the secret/local-path scanner.
+
+Local file path (should trip rule `local-path-macos`):
+    config_path = "/Users/jordi/projects/opencorp/config.yaml"
+
+Phone number (NOT currently detected — no PII rule configured):
+    support_phone = "+1 (415) 555-0142"
